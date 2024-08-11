@@ -1,21 +1,84 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
+
+from RSA import *
 
 def subir_informacion():
-    archivo = filedialog.askopenfilename(title="Selecciona un archivo")
+    archivo = filedialog.askopenfilename(
+        title="Selecciona un archivo",
+        filetypes=[("Text files", "*.txt")]  
+    )
     if archivo:
         status_label.config(text=f"El archivo '{archivo}' se subió correctamente.")
+        root.filename = archivo  
     else:
         status_label.config(text="No se seleccionó ningún archivo.")
 
 def encriptar():
-    pass  
+    try:
+        if not hasattr(root, 'filename'):
+            messagebox.showwarning("Advertencia", "Por favor, selecciona un archivo primero.")
+            return
+
+        with open(root.filename, 'r') as file:
+            content = file.read()
+
+        bits = 1024
+        p, q = generate_large_primes(bits)
+        public_key, private_key = generate_keypair(p, q)
+
+        encrypted_content = encrypt(public_key, content)
+
+        save_path = filedialog.asksaveasfilename(defaultextension=".txt", title="Guardar archivo encriptado")
+        if save_path:
+            with open(save_path, 'w') as file:
+                file.write(' '.join(map(str, encrypted_content)))
+            status_label.config(text=f"El archivo ha sido encriptado y guardado como '{save_path}'.")
+
+            private_key_path = save_path.replace(".txt", "_private_key.txt")
+            with open(private_key_path, 'w') as file:
+                file.write(f"{private_key[0]}\n{private_key[1]}")
+            messagebox.showinfo("Llave privada guardada", f"La llave privada se ha guardado en '{private_key_path}'.")
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Se produjo un error: {str(e)}")
+
 
 def desencriptar():
-    pass  
+    try:
+        if not hasattr(root, 'filename'):
+            messagebox.showwarning("Advertencia", "Por favor, selecciona un archivo primero.")
+            return
+
+        with open(root.filename, 'r') as file:
+            encrypted_content = file.read()
+
+        encrypted_content = list(map(int, encrypted_content.split()))
+
+        private_key_file = filedialog.askopenfilename(title="Selecciona el archivo de la llave privada")
+        if not private_key_file:
+            messagebox.showwarning("Advertencia", "Por favor, selecciona un archivo de llave privada primero.")
+            return
+
+        with open(private_key_file, 'r') as file:
+            private_key = tuple(map(int, file.read().splitlines()))
+
+        decrypted_content = decrypt(private_key, encrypted_content)
+
+        save_path = filedialog.asksaveasfilename(defaultextension=".txt", title="Guardar archivo desencriptado")
+        if save_path:
+            with open(save_path, 'w') as file:
+                file.write(decrypted_content)
+            status_label.config(text=f"El archivo ha sido desencriptado y guardado como '{save_path}'.")
+
+    except ValueError as ve:
+        messagebox.showerror("Error", "Error de conversión: Verifica que el archivo contenga datos cifrados correctamente.")
+    except Exception as e:
+        messagebox.showerror("Error", f"Se produjo un error: {str(e)}")
 
 def cambiar_llaves():
-    pass  
+    pass
 
 
 root = tk.Tk()

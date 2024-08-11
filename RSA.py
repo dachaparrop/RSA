@@ -58,18 +58,18 @@ def generate_large_primes(bits):
 
 # Ejemplo de uso:
 
-bits = 1024  # Genera números primos de 1024 bits
-p, q = generate_large_primes(bits)
-print(f"Número primo p: {p}")
-print(f"Número primo q: {q}")
+# bits = 1024  # Genera números primos de 1024 bits
+# p, q = generate_large_primes(bits)
+# print(f"Número primo p: {p}")
+# print(f"Número primo q: {q}")
 
-public, private = generate_keypair(p, q)
-print("Clave pública:", public)
-print("Clave privada:", private)
+# public, private = generate_keypair(p, q)
+# print("Clave pública:", public)
+# print("Clave privada:", private)
 
-mensaje = "Hola Mundo"
-cifrado = encrypt(public, mensaje)
-print("Mensaje cifrado:", cifrado)
+# mensaje = "Hola Mundo"
+# cifrado = encrypt(public, mensaje)
+# print("Mensaje cifrado:", cifrado)
 
-descifrado = decrypt(private, cifrado)
-print("Mensaje descifrado:", descifrado)
+# descifrado = decrypt(private, cifrado)
+# print("Mensaje descifrado:", descifrado)
