@@ -1,11 +1,22 @@
 import sympy
 
+
 def gcd(a, b):
+    """
+        Compute the greatest common divisor (GCD) of a and b.
+    """
+    
     while b != 0:
         a, b = b, a % b
     return a
 
+
 def mod_inverse(e, phi):
+    
+    """
+        Compute the modular multiplicative inverse of e modulo phi.
+    """
+    
     d, x1, x2, y1 = 0, 0, 1, 1
     temp_phi = phi
     
@@ -20,56 +31,62 @@ def mod_inverse(e, phi):
     if temp_phi == 1:
         return d + phi
 
+
 def is_prime(num):
+    """
+        Check if a number is prime.
+    """
+    
     return sympy.isprime(num)
 
+
 def generate_keypair(p, q):
+    """
+        Generate a public and private key pair using primes p and q.
+    """
+    
     if not (is_prime(p) and is_prime(q)):
-        raise ValueError('Ambos números deben ser primos.')
+        raise ValueError('Both numbers must be prime.')
     elif p == q:
-        raise ValueError('p y q no pueden ser iguales.')
+        raise ValueError('p and q cannot be the same.')
     
     n = p * q
     phi = (p-1) * (q-1)
-
-    e = 65537  # Valor estándar y eficiente para e
+    e = 65537  # Standard and efficient value for e
     
     if gcd(e, phi) != 1:
-        raise ValueError("e no es coprimo con phi(n), lo cual es improbable.")
+        raise ValueError("e is not coprime with phi(n), which is unlikely.")
 
     d = mod_inverse(e, phi)
-    
     return ((e, n), (d, n))
 
+
 def encrypt(pk, plaintext):
+    """
+        Encrypt the plaintext using the public key pk.
+    """
+
     key, n = pk
     cipher = [pow(ord(char), key, n) for char in plaintext]
     return cipher
 
+
 def decrypt(pk, ciphertext):
+    """
+        Decrypt the ciphertext using the private key pk.
+    """
+
     key, n = pk
     plain = ''.join([chr(pow(char, key, n)) for char in ciphertext])
     return plain
 
+
 def generate_large_primes(bits):
+    """
+        Generate two large prime numbers with the specified bit size.
+    """
+
     p = sympy.randprime(2**(bits-1), 2**bits)
     q = sympy.randprime(2**(bits-1), 2**bits)
+    
     return p, q
-
-# Ejemplo de uso:
-
-# bits = 1024  # Genera números primos de 1024 bits
-# p, q = generate_large_primes(bits)
-# print(f"Número primo p: {p}")
-# print(f"Número primo q: {q}")
-
-# public, private = generate_keypair(p, q)
-# print("Clave pública:", public)
-# print("Clave privada:", private)
-
-# mensaje = "Hola Mundo"
-# cifrado = encrypt(public, mensaje)
-# print("Mensaje cifrado:", cifrado)
-
-# descifrado = decrypt(private, cifrado)
-# print("Mensaje descifrado:", descifrado)
