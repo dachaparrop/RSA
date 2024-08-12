@@ -1,20 +1,22 @@
 import tkinter as tk
 import os
+import subprocess
 
 from tkinter import filedialog, messagebox
 from RSA import *
-
+from Randomart import *
 
 def keys_exist():
     """
         Check if the RSA key files (public and private) already exist in the 'keys' directory.
     """
 
-    if not os.path.exists("keys"):
-        os.makedirs("keys")
+    if not os.path.exists(".key"):
+        os.makedirs(".key")
+        subprocess.run(['attrib', '+h', '.key'])
 
-    public_key_path = os.path.join("keys", "public_key.txt")
-    private_key_path = os.path.join("keys", "private_key.txt")
+    public_key_path = os.path.join(os.getcwd(), "public_key.txt")
+    private_key_path = os.path.join(".key", "private_key.txt")
 
     return os.path.exists(public_key_path) and os.path.exists(private_key_path)
 
@@ -22,28 +24,33 @@ def keys_exist():
 def generate_keys():
     """
         Generate a new RSA key pair and save them as 'public_key.txt' and 'private_key.txt' in the 'keys' directory.
+        Returns the public and private keys.
     """
     
     try: 
-        bits = 1024
+        bits = 1024  # Number of bits used
         p, q = generate_large_primes(bits)
         public_key, private_key = generate_keypair(p, q)
 
-        if not os.path.exists("keys"):
-            os.makedirs("keys")
+        if not os.path.exists(".key"):
+            os.makedirs(".key")
+            subprocess.run(['attrib', '+h', '.key'])
         
-        public_key_path = os.path.join("keys", "public_key.txt")
+        public_key_path = os.path.join(os.getcwd(), "public_key.txt")
         with open(public_key_path, 'w') as file:
             file.write(f"{public_key[0]}\n{public_key[1]}")
 
-        private_key_path = os.path.join("keys", "private_key.txt")
+        private_key_path = os.path.join(".key", "private_key.txt")
         with open(private_key_path, 'w') as file:
             file.write(f"{private_key[0]}\n{private_key[1]}")
 
         messagebox.showinfo("Keys Generated", "New keys have been generated.")
+        
+        return public_key, private_key
 
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
+        return None, None
 
 
 def get_public_key():
@@ -52,7 +59,7 @@ def get_public_key():
     """
 
     try:
-        public_key_path = os.path.join("keys", "public_key.txt")
+        public_key_path = os.path.join(os.getcwd(), "public_key.txt")
 
         with open(public_key_path, 'r') as file:
             e = int(file.readline().strip())
@@ -71,7 +78,7 @@ def get_private_key():
     """
     
     try:
-        private_key_path = os.path.join("keys", "private_key.txt")
+        private_key_path = os.path.join(".key", "private_key.txt")
 
         with open(private_key_path, 'r') as file:
             d = int(file.readline().strip())
@@ -105,6 +112,7 @@ def encrypt_file():
         Encrypt the contents of the selected file using the public key.
         If keys don't exist, it generates new keys.
         The encrypted content is then saved to a new file chosen by the user.
+        Also updates the randomart in the text widget.
     """
 
     try:
@@ -127,8 +135,16 @@ def encrypt_file():
                 file.write(' '.join(map(str, encrypted_content)))
             status_label.config(text=f"The file has been encrypted and saved as '{save_path}'.")
 
+            # Update the randomart in the text widget
+            new_randomart = generate_randomart_from_public_key()
+            text_widget.config(state='normal')
+            text_widget.delete('1.0', tk.END)
+            text_widget.insert('1.0', new_randomart)
+            text_widget.config(state='disabled')
+
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
 
 
 def decrypt_file():
@@ -148,7 +164,7 @@ def decrypt_file():
         encrypted_content = list(map(int, encrypted_content.split()))
 
         if not keys_exist():
-            messagebox.showwarning("Warning", "Please select a private key file first.")
+            messagebox.showwarning("Warning", "Please put a private key file first.")
             return
 
         private_key = get_private_key()
@@ -163,13 +179,15 @@ def decrypt_file():
     except ValueError as ve:
         messagebox.showerror("Error", "Conversion error: Please ensure the file contains correctly encrypted data.")
     except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+        messagebox.showerror("Error", "Be sure you are introducing the correct private key")
+        print("Error", f"An error occurred: {str(e)}")
 
 
 def change_keys():
     """
         Generate new RSA keys, replacing the existing ones.
         If keys already exist, it prompts the user for confirmation before generating new keys.
+        Also updates the randomart in the text widget.
     """
 
     try:
@@ -181,7 +199,15 @@ def change_keys():
             if not response:
                 return
 
-        generate_keys()
+        public_key, private_key = generate_keys()
+        
+        if public_key and private_key:
+            # Generate new randomart and update the text_widget
+            new_randomart = generate_randomart_from_public_key()
+            text_widget.config(state='normal')
+            text_widget.delete('1.0', tk.END)
+            text_widget.insert('1.0', new_randomart)
+            text_widget.config(state='disabled')
 
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while trying to change the keys: {str(e)}")
@@ -189,7 +215,7 @@ def change_keys():
 
 root = tk.Tk()
 root.title("Encryption Interface")
-root.geometry("500x400")
+root.geometry("500x550")
 root.configure(bg="#e6e6e6")  
 root.resizable(False, False)
 
@@ -216,11 +242,17 @@ decrypt_btn.place(x=280, y=100)
 change_keys_btn = tk.Button(root, text="CHANGE KEYS\n(PUBLIC/PRIVATE)", command=change_keys, **button_style)
 change_keys_btn.place(x=150, y=180)
 
-key_label = tk.Label(root, text="Graphical representation of the private key (optional)\n(For the user to know if their key has changed)", bg="#e6e6e6", font=("Helvetica", 10))
-key_label.place(x=100, y=260)
+text_widget = tk.Text(root, wrap='none', font=('Courier', 12))
 
-decrypted_info_label = tk.Label(root, text="(Displays the decrypted information)", bg="#e6e6e6", font=("Helvetica", 10))
-decrypted_info_label.place(x=150, y=330)
-
+if keys_exist():
+    initial_randomart = generate_randomart_from_public_key()
+else:
+    initial_randomart = generate_empty_randomart()
+text_widget.insert('1.0', initial_randomart)
+text_widget.config(state='disabled')
+num_lines = len(initial_randomart.split('\n'))
+max_line_length = max(len(line) for line in initial_randomart.split('\n'))
+text_widget.config(height=num_lines, width=max_line_length)
+text_widget.place(x=150, y=300)
 
 root.mainloop()
