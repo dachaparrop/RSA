@@ -215,7 +215,7 @@ def change_keys():
 
 root = tk.Tk()
 root.title("Encryption Interface")
-root.geometry("500x550")
+root.geometry("500x530")
 root.configure(bg="#e6e6e6")  
 root.resizable(False, False)
 
@@ -231,16 +231,19 @@ upload_btn = tk.Button(root, text="UPLOAD FILE", command=upload_file, **button_s
 upload_btn.place(x=50, y=30)
 
 status_label = tk.Label(root, bg="#e6e6e6", font=("Helvetica", 10), wraplength=200, anchor="w")
-status_label.place(x=280, y=30)
+status_label.place(x=265, y=20)
 
 encrypt_btn = tk.Button(root, text="ENCRYPT", command=encrypt_file, **button_style)
-encrypt_btn.place(x=150, y=100)
+encrypt_btn.place(x=100, y=120)
 
 decrypt_btn = tk.Button(root, text="DECRYPT", command=decrypt_file, **button_style)
-decrypt_btn.place(x=280, y=100)
+decrypt_btn.place(x=280, y=120)
 
 change_keys_btn = tk.Button(root, text="CHANGE KEYS\n(PUBLIC/PRIVATE)", command=change_keys, **button_style)
-change_keys_btn.place(x=150, y=180)
+change_keys_btn.place(x=155, y=200)
+
+randomart_label = tk.Label(root, text="PUBLIC KEY'S RANDOMART", bg="#e6e6e6", font=("Helvetica", 10), wraplength=200, anchor="w")
+randomart_label.place(x=157, y=300)
 
 text_widget = tk.Text(root, wrap='none', font=('Courier', 12))
 
@@ -253,6 +256,6 @@ text_widget.config(state='disabled')
 num_lines = len(initial_randomart.split('\n'))
 max_line_length = max(len(line) for line in initial_randomart.split('\n'))
 text_widget.config(height=num_lines, width=max_line_length)
-text_widget.place(x=150, y=300)
+text_widget.place(x=150, y=320)
 
 root.mainloop()
