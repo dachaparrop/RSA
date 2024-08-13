@@ -245,7 +245,7 @@ change_keys_btn.place(x=175, y=200)
 randomart_label = tk.Label(root, text="PUBLIC KEY'S RANDOMART", bg="white", font=("Segoe UI", 10, "bold"), wraplength=200, anchor="w")
 randomart_label.place(x=160, y=270)
 
-text_widget = tk.Text(root, wrap='none', font=("Segoe UI", 12))
+text_widget = tk.Text(root, wrap='none', font=("Courier New", 12))
 
 if keys_exist():
     initial_randomart = generate_randomart_from_public_key()
@@ -257,6 +257,6 @@ text_widget.config(state='disabled')
 num_lines = len(initial_randomart.split('\n'))
 max_line_length = max(len(line) for line in initial_randomart.split('\n'))
 text_widget.config(height=num_lines, width=max_line_length)
-text_widget.place(x=160, y=300)
+text_widget.place(x=150, y=300)
 
 root.mainloop()
